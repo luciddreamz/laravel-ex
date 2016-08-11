@@ -1,0 +1,448 @@
+{
+  "kind": "Template",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "laravel-pgsql-example",
+    "annotations": {
+      "description": "An example Laravel application with a PostgreSQL database",
+      "tags": "quickstart,php,laravel,postgresql",
+      "iconClass": "icon-laravel"
+    }
+  },
+  "labels": {
+    "template": "laravel-pgsql-example"
+  },
+  "objects": [{
+    "kind": "Service",
+    "apiVersion": "v1",
+    "metadata": {
+      "name": "laravel-pgsql-example",
+      "annotations": {
+        "description": "Exposes and load balances the application pods"
+      }
+    },
+    "spec": {
+      "ports": [{
+        "name": "web",
+        "port": 8080,
+        "targetPort": 8080
+      }],
+      "selector": {
+        "name": "laravel-pgsql-example"
+      }
+    }
+  }, {
+    "kind": "Route",
+    "apiVersion": "v1",
+    "metadata": {
+      "name": "laravel-pgsql-example"
+    },
+    "spec": {
+      "host": "${APPLICATION_DOMAIN}",
+      "to": {
+        "kind": "Service",
+        "name": "laravel-pgsql-example"
+      }
+    }
+  }, {
+    "kind": "ImageStream",
+    "apiVersion": "v1",
+    "metadata": {
+      "name": "laravel-pgsql-example",
+      "annotations": {
+        "description": "Keeps track of changes in the application image"
+      }
+    }
+  }, {
+    "kind": "BuildConfig",
+    "apiVersion": "v1",
+    "metadata": {
+      "name": "laravel-pgsql-example",
+      "annotations": {
+        "description": "Defines how to build the application"
+      }
+    },
+    "spec": {
+      "source": {
+        "type": "Git",
+        "git": {
+          "uri": "${SOURCE_REPOSITORY_URL}",
+          "ref": "${SOURCE_REPOSITORY_REF}"
+        },
+        "contextDir": "${CONTEXT_DIR}"
+      },
+      "strategy": {
+        "type": "Source",
+        "sourceStrategy": {
+          "from": {
+            "kind": "ImageStreamTag",
+            "namespace": "openshift",
+            "name": "php:5.6"
+          }
+        }
+      },
+      "output": {
+        "to": {
+          "kind": "ImageStreamTag",
+          "name": "laravel-pgsql-example:latest"
+        }
+      },
+      "triggers": [{
+        "type": "ImageChange"
+      }, {
+        "type": "ConfigChange"
+      }, {
+        "type": "GitHub",
+        "github": {
+          "secret": "${GITHUB_WEBHOOK_SECRET}"
+        }
+      }]
+    }
+  }, {
+    "kind": "PersistentVolumeClaim",
+    "apiVersion": "v1",
+    "metadata": {
+      "name": "${DATABASE_SERVICE_NAME}"
+    },
+    "spec": {
+      "accessModes": [
+        "ReadWriteOnce"
+      ],
+      "resources": {
+        "requests": {
+          "storage": "${VOLUME_CAPACITY}"
+        }
+      }
+    }
+  }, {
+    "kind": "DeploymentConfig",
+    "apiVersion": "v1",
+    "metadata": {
+      "name": "laravel-pgsql-example",
+      "annotations": {
+        "description": "Defines how to deploy the application server"
+      }
+    },
+    "spec": {
+      "strategy": {
+        "type": "Rolling",
+        "recreateParams": {
+          "pre": {
+            "failurePolicy": "Retry",
+            "execNewPod": {
+              "command": [
+                "./migrate-database.sh"
+              ],
+              "containerName": "laravel-pgsql-example"
+            }
+          }
+        }
+      },
+      "triggers": [{
+        "type": "ImageChange",
+        "imageChangeParams": {
+          "automatic": true,
+          "containerNames": [
+            "laravel-pgsql-example"
+          ],
+          "from": {
+            "kind": "ImageStreamTag",
+            "name": "laravel-pgsql-example:latest"
+          }
+        }
+      }, {
+        "type": "ConfigChange"
+      }],
+      "replicas": 1,
+      "selector": {
+        "name": "laravel-pgsql-example"
+      },
+      "template": {
+        "metadata": {
+          "name": "laravel-pgsql-example",
+          "labels": {
+            "name": "laravel-pgsql-example"
+          }
+        },
+        "spec": {
+          "containers": [{
+            "name": "laravel-pgsql-example",
+            "image": "laravel-pgsql-example",
+            "ports": [{
+              "containerPort": 8080
+            }],
+            "readinessProbe": {
+              "timeoutSeconds": 3,
+              "initialDelaySeconds": 3,
+              "httpGet": {
+                "path": "/health.php",
+                "port": 8080
+              }
+            },
+            "livenessProbe": {
+              "timeoutSeconds": 3,
+              "initialDelaySeconds": 30,
+              "httpGet": {
+                "path": "/",
+                "port": 8080
+              }
+            },
+            "env": [{
+              "name": "CLUSTER_NAME",
+              "value": "${CLUSTER_NAME}"
+            }, {
+              "name": "ROUTER_SHARD",
+              "value": "${ROUTER_SHARD}"
+            }, {
+              "name": "DB_SERVICE_NAME",
+              "value": "${DATABASE_SERVICE_NAME}"
+            }, {
+              "name": "DB_CONNECTION",
+              "value": "${DATABASE_ENGINE}"
+            }, {
+              "name": "DB_DATABASE",
+              "value": "${DATABASE_NAME}"
+            }, {
+              "name": "DB_USERNAME",
+              "value": "${DATABASE_USER}"
+            }, {
+              "name": "DB_PASSWORD",
+              "value": "${DATABASE_PASSWORD}"
+            }, {
+              "name": "APP_KEY",
+              "value": "${LARAVEL_APP_KEY}"
+            }, {
+              "name": "APP_ENV",
+              "value": "${LARAVEL_APP_ENV}"
+            }, {
+              "name": "APP_DEBUG",
+              "value": "${LARAVEL_APP_DEBUG}"
+            }, {
+              "name": "OPCACHE_REVALIDATE_FREQ",
+              "value": "${OPCACHE_REVALIDATE_FREQ}"
+            }],
+            "resources": {
+              "limits": {
+                "memory": "${MEMORY_LIMIT}"
+              }
+            }
+          }]
+        }
+      }
+    }
+  }, {
+    "kind": "Service",
+    "apiVersion": "v1",
+    "metadata": {
+      "name": "${DATABASE_SERVICE_NAME}",
+      "annotations": {
+        "description": "Exposes the database server"
+      }
+    },
+    "spec": {
+      "ports": [{
+        "name": "postgresql",
+        "port": 5432,
+        "targetPort": 5432
+      }],
+      "selector": {
+        "name": "${DATABASE_SERVICE_NAME}"
+      }
+    }
+  }, {
+    "kind": "DeploymentConfig",
+    "apiVersion": "v1",
+    "metadata": {
+      "name": "${DATABASE_SERVICE_NAME}",
+      "annotations": {
+        "description": "Defines how to deploy the database"
+      }
+    },
+    "spec": {
+      "strategy": {
+        "type": "Recreate"
+      },
+      "triggers": [{
+        "type": "ImageChange",
+        "imageChangeParams": {
+          "automatic": true,
+          "containerNames": [
+            "postgresql"
+          ],
+          "from": {
+            "kind": "ImageStreamTag",
+            "namespace": "openshift",
+            "name": "postgresql:9.5"
+          }
+        }
+      }, {
+        "type": "ConfigChange"
+      }],
+      "replicas": 1,
+      "selector": {
+        "name": "${DATABASE_SERVICE_NAME}"
+      },
+      "template": {
+        "metadata": {
+          "name": "${DATABASE_SERVICE_NAME}",
+          "labels": {
+            "name": "${DATABASE_SERVICE_NAME}"
+          }
+        },
+        "spec": {
+          "containers": [{
+            "name": "postgresql",
+            "image": "postgresql",
+            "ports": [{
+              "containerPort": 5432
+            }],
+            "readinessProbe": {
+              "timeoutSeconds": 1,
+              "initialDelaySeconds": 5,
+              "exec": {
+                "command": [ "/bin/sh", "-i", "-c", "psql -h 127.0.0.1 -U ${DATABASE_USER} -q -d ${DATABASE_NAME} -c 'SELECT 1'"]
+              }
+            },
+            "livenessProbe": {
+              "timeoutSeconds": 1,
+              "initialDelaySeconds": 30,
+              "tcpSocket": {
+                "port": 5432
+              }
+            },
+            "env": [{
+              "name": "POSTGRESQL_USER",
+              "value": "${DATABASE_USER}"
+            }, {
+              "name": "POSTGRESQL_PASSWORD",
+              "value": "${DATABASE_PASSWORD}"
+            }, {
+              "name": "POSTGRESQL_DATABASE",
+              "value": "${DATABASE_NAME}"
+            }],
+            "resources": {
+              "limits": {
+                "memory": "${MEMORY_POSTGRESQL_LIMIT}"
+              }
+            },
+            "volumeMounts": [{
+              "name": "${DATABASE_SERVICE_NAME}-data",
+              "mountPath": "/var/lib/pgsql/data"
+            }]
+          }],
+          "volumes": [{
+            "name": "${DATABASE_SERVICE_NAME}-data",
+            "persistentVolumeClaim": {
+              "claimName": "${DATABASE_SERVICE_NAME}"
+            }
+          }]
+        }
+      }
+    }
+  }],
+  "parameters": [{
+    "name": "SOURCE_REPOSITORY_URL",
+    "displayName": "Git Repository URL",
+    "description": "The URL of the repository with your application source code.",
+    "value": "https://github.com/luciddreamz/laravel-ex.git",
+    "required": true
+  }, {
+    "name": "SOURCE_REPOSITORY_REF",
+    "displayName": "Git Reference",
+    "description": "Set this to a branch name, tag or other ref of your repository if you are not using the default branch."
+  }, {
+    "name": "LARAVEL_APP_ENV",
+    "displayName": "Laravel Application Environment",
+    "description": "Determines the 'environment' your application is currently.",
+    "value": "development",
+    "required": true
+  }, {
+    "name": "LARAVEL_APP_DEBUG",
+    "displayName": "Laravel Application Debug Mode",
+    "description": "Enable or disable detailed error messages.",
+    "value": "true",
+    "required": true
+  }, {
+    "name": "OPCACHE_REVALIDATE_FREQ",
+    "displayName": "OPcache Revalidation Frequency",
+    "description": "How often to check script timestamps for updates, in seconds. 0 will result in OPcache checking for updates on every request.",
+    "value": "0"
+  }, {
+    "displayName": "Cluster Name",
+    "name": "CLUSTER_NAME",
+    "description": "The name of your current OpenShift cluster (console.CLUSTER_NAME.openshift.com).",
+    "value": "preview",
+    "required": true
+  }, {
+    "displayName": "Router Shard",
+    "name": "ROUTER_SHARD",
+    "description": "The router shard used by routes in your current OpenShift cluster (http://PROJECT_NAME-APPLICATION_NAME.ROUTER_SHARD.CLUSTER_NAME.openshiftapps.com/).",
+    "value": "44fs",
+    "required": true
+  }, {
+    "name": "MEMORY_LIMIT",
+    "displayName": "Memory Limit",
+    "description": "Maximum amount of memory the Laravel container can use.",
+    "value": "512Mi",
+    "required": true
+  }, {
+    "name": "MEMORY_POSTGRESQL_LIMIT",
+    "displayName": "Memory Limit (PostgreSQL)",
+    "description": "Maximum amount of memory the PostgreSQL container can use.",
+    "value": "512Mi",
+    "required": true
+  }, {
+    "name": "VOLUME_CAPACITY",
+    "displayName": "Volume Capacity",
+    "description": "Volume space available for data, e.g. 512Mi, 2Gi",
+    "value": "1Gi",
+    "required": true
+  }, {
+    "name": "CONTEXT_DIR",
+    "displayName": "Context Directory",
+    "description": "Set this to the relative path to your project if it is not in the root of your repository."
+  }, {
+    "name": "APPLICATION_DOMAIN",
+    "displayName": "Application Hostname",
+    "description": "The exposed hostname that will route to the Laravel service, if left blank a value will be defaulted.",
+    "value": ""
+  }, {
+    "name": "GITHUB_WEBHOOK_SECRET",
+    "displayName": "GitHub Webhook Secret",
+    "description": "A secret string used to configure the GitHub webhook.",
+    "generate": "expression",
+    "from": "[a-zA-Z0-9]{40}"
+  }, {
+    "name": "DATABASE_SERVICE_NAME",
+    "displayName": "Database Service Name",
+    "value": "postgresql",
+    "required": true
+  }, {
+    "name": "DATABASE_ENGINE",
+    "displayName": "Database Engine",
+    "description": "Database engine: mysql, pgsql (default), or sqlite.",
+    "value": "pgsql",
+    "required": true
+  }, {
+    "name": "DATABASE_NAME",
+    "displayName": "Database Name",
+    "value": "default",
+    "required": true
+  }, {
+    "name": "DATABASE_USER",
+    "displayName": "Database User",
+    "value": "laravel",
+    "required": true
+  }, {
+    "name": "DATABASE_PASSWORD",
+    "displayName": "Database Password",
+    "generate": "expression",
+    "from": "[a-zA-Z0-9]{16}"
+  }, {
+    "name": "LARAVEL_APP_KEY",
+    "displayName": "Laravel Encryption Key",
+    "description": "Set this to a 32 character random string.",
+    "generate": "expression",
+    "from": "[\\w]{32}"
+  }]
+}

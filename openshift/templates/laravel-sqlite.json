@@ -1,0 +1,279 @@
+{
+  "kind": "Template",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "laravel-sqlite-example",
+    "annotations": {
+      "description": "An example Laravel application with a MySQL database",
+      "tags": "quickstart,php,laravel,sqlite",
+      "iconClass": "icon-laravel"
+    }
+  },
+  "labels": {
+    "template": "laravel-sqlite-example"
+  },
+  "objects": [{
+    "kind": "Service",
+    "apiVersion": "v1",
+    "metadata": {
+      "name": "laravel-sqlite-example",
+      "annotations": {
+        "description": "Exposes and load balances the application pods"
+      }
+    },
+    "spec": {
+      "ports": [{
+        "name": "web",
+        "port": 8080,
+        "targetPort": 8080
+      }],
+      "selector": {
+        "name": "laravel-sqlite-example"
+      }
+    }
+  }, {
+    "kind": "Route",
+    "apiVersion": "v1",
+    "metadata": {
+      "name": "laravel-sqlite-example"
+    },
+    "spec": {
+      "host": "${APPLICATION_DOMAIN}",
+      "to": {
+        "kind": "Service",
+        "name": "laravel-sqlite-example"
+      }
+    }
+  }, {
+    "kind": "ImageStream",
+    "apiVersion": "v1",
+    "metadata": {
+      "name": "laravel-sqlite-example",
+      "annotations": {
+        "description": "Keeps track of changes in the application image"
+      }
+    }
+  }, {
+    "kind": "BuildConfig",
+    "apiVersion": "v1",
+    "metadata": {
+      "name": "laravel-sqlite-example",
+      "annotations": {
+        "description": "Defines how to build the application"
+      }
+    },
+    "spec": {
+      "source": {
+        "type": "Git",
+        "git": {
+          "uri": "${SOURCE_REPOSITORY_URL}",
+          "ref": "${SOURCE_REPOSITORY_REF}"
+        },
+        "contextDir": "${CONTEXT_DIR}"
+      },
+      "strategy": {
+        "type": "Source",
+        "sourceStrategy": {
+          "from": {
+            "kind": "ImageStreamTag",
+            "namespace": "openshift",
+            "name": "php:5.6"
+          }
+        }
+      },
+      "output": {
+        "to": {
+          "kind": "ImageStreamTag",
+          "name": "laravel-sqlite-example:latest"
+        }
+      },
+      "triggers": [{
+        "type": "ImageChange"
+      }, {
+        "type": "ConfigChange"
+      }, {
+        "type": "GitHub",
+        "github": {
+          "secret": "${GITHUB_WEBHOOK_SECRET}"
+        }
+      }]
+    }
+  }, {
+    "kind": "DeploymentConfig",
+    "apiVersion": "v1",
+    "metadata": {
+      "name": "laravel-sqlite-example",
+      "annotations": {
+        "description": "Defines how to deploy the application server"
+      }
+    },
+    "spec": {
+      "strategy": {
+        "type": "Rolling",
+        "recreateParams": {
+          "pre": {
+            "failurePolicy": "Retry",
+            "execNewPod": {
+              "command": [
+                "./migrate-database.sh"
+              ],
+              "containerName": "laravel-sqlite-example"
+            }
+          }
+        }
+      },
+      "triggers": [{
+        "type": "ImageChange",
+        "imageChangeParams": {
+          "automatic": true,
+          "containerNames": [
+            "laravel-sqlite-example"
+          ],
+          "from": {
+            "kind": "ImageStreamTag",
+            "name": "laravel-sqlite-example:latest"
+          }
+        }
+      }, {
+        "type": "ConfigChange"
+      }],
+      "replicas": 1,
+      "selector": {
+        "name": "laravel-sqlite-example"
+      },
+      "template": {
+        "metadata": {
+          "name": "laravel-sqlite-example",
+          "labels": {
+            "name": "laravel-sqlite-example"
+          }
+        },
+        "spec": {
+          "containers": [{
+            "name": "laravel-sqlite-example",
+            "image": "laravel-sqlite-example",
+            "ports": [{
+              "containerPort": 8080
+            }],
+            "readinessProbe": {
+              "timeoutSeconds": 3,
+              "initialDelaySeconds": 3,
+              "httpGet": {
+                "path": "/health.php",
+                "port": 8080
+              }
+            },
+            "livenessProbe": {
+              "timeoutSeconds": 3,
+              "initialDelaySeconds": 30,
+              "httpGet": {
+                "path": "/",
+                "port": 8080
+              }
+            },
+            "env": [{
+              "name": "CLUSTER_NAME",
+              "value": "${CLUSTER_NAME}"
+            }, {
+              "name": "ROUTER_SHARD",
+              "value": "${ROUTER_SHARD}"
+            }, {
+              "name": "DB_CONNECTION",
+              "value": "${DATABASE_ENGINE}"
+            }, {
+              "name": "APP_KEY",
+              "value": "${LARAVEL_APP_KEY}"
+            }, {
+              "name": "APP_ENV",
+              "value": "${LARAVEL_APP_ENV}"
+            }, {
+              "name": "APP_DEBUG",
+              "value": "${LARAVEL_APP_DEBUG}"
+            }, {
+              "name": "OPCACHE_REVALIDATE_FREQ",
+              "value": "${OPCACHE_REVALIDATE_FREQ}"
+            }],
+            "resources": {
+              "limits": {
+                "memory": "${MEMORY_LIMIT}"
+              }
+            }
+          }]
+        }
+      }
+    }
+  }],
+  "parameters": [{
+    "name": "SOURCE_REPOSITORY_URL",
+    "displayName": "Git Repository URL",
+    "description": "The URL of the repository with your application source code.",
+    "value": "https://github.com/luciddreamz/laravel-ex.git",
+    "required": true
+  }, {
+    "name": "SOURCE_REPOSITORY_REF",
+    "displayName": "Git Reference",
+    "description": "Set this to a branch name, tag or other ref of your repository if you are not using the default branch."
+  }, {
+    "name": "LARAVEL_APP_ENV",
+    "displayName": "Laravel Application Environment",
+    "description": "Determines the 'environment' your application is currently.",
+    "value": "development",
+    "required": true
+  }, {
+    "name": "LARAVEL_APP_DEBUG",
+    "displayName": "Laravel Application Debug Mode",
+    "description": "Enable or disable detailed error messages.",
+    "value": "true",
+    "required": true
+  }, {
+    "name": "OPCACHE_REVALIDATE_FREQ",
+    "displayName": "OPcache Revalidation Frequency",
+    "description": "How often to check script timestamps for updates, in seconds. 0 will result in OPcache checking for updates on every request.",
+    "value": "0"
+  }, {
+    "displayName": "Cluster Name",
+    "name": "CLUSTER_NAME",
+    "description": "The name of your current OpenShift cluster (console.CLUSTER_NAME.openshift.com).",
+    "value": "preview",
+    "required": true
+  }, {
+    "displayName": "Router Shard",
+    "name": "ROUTER_SHARD",
+    "description": "The router shard used by routes in your current OpenShift cluster (http://PROJECT_NAME-APPLICATION_NAME.ROUTER_SHARD.CLUSTER_NAME.openshiftapps.com/).",
+    "value": "44fs",
+    "required": true
+  }, {
+    "name": "MEMORY_LIMIT",
+    "displayName": "Memory Limit",
+    "description": "Maximum amount of memory the Laravel container can use.",
+    "value": "512Mi",
+    "required": true
+  }, {
+    "name": "CONTEXT_DIR",
+    "displayName": "Context Directory",
+    "description": "Set this to the relative path to your project if it is not in the root of your repository."
+  }, {
+    "name": "APPLICATION_DOMAIN",
+    "displayName": "Application Hostname",
+    "description": "The exposed hostname that will route to the Laravel service, if left blank a value will be defaulted.",
+    "value": ""
+  }, {
+    "name": "GITHUB_WEBHOOK_SECRET",
+    "displayName": "GitHub Webhook Secret",
+    "description": "A secret string used to configure the GitHub webhook.",
+    "generate": "expression",
+    "from": "[a-zA-Z0-9]{40}"
+  }, {
+    "name": "DATABASE_ENGINE",
+    "displayName": "Database Engine",
+    "description": "Database engine: mysql, pgsql, or sqlite (default).",
+    "value": "sqlite",
+    "required": true
+  }, {
+    "name": "LARAVEL_APP_KEY",
+    "displayName": "Laravel Encryption Key",
+    "description": "Set this to a 32 character random string.",
+    "generate": "expression",
+    "from": "[\\w]{32}"
+  }]
+}

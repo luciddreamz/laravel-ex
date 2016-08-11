@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'env' => env('APP_ENV', 'production'),
+    'env' => env('APP_ENV', 'development'),
 
     /*
     |--------------------------------------------------------------------------
@@ -26,7 +26,7 @@ return [
     |
     */
 
-    'debug' => env('APP_DEBUG', false),
+    'debug' => env('APP_DEBUG', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -39,7 +39,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => env('OPENSHIFT_BUILD_NAME') ? ( 'http://'.preg_replace('/^(.*)-[\d]+$/','${1}',env('OPENSHIFT_BUILD_NAME', 'laravel-mysql-example-1')).'-'.env('OPENSHIFT_BUILD_NAMESPACE').'.'.env('ROUTER_SHARD', '44fs').'.'.env('CLUSTER_NAME', 'preview').'.openshiftapps.com' ) : env('APP_URL', 'http://localhost'),
 
     /*
     |--------------------------------------------------------------------------
@@ -91,7 +91,7 @@ return [
     |
     */
 
-    'key' => env('APP_KEY'),
+    'key' => env('APP_KEY', 'base64:WvqIZriSQBJAlFyHQ3zrMUQbzLB9a42v/vQRACDAdqA='),
 
     'cipher' => 'AES-256-CBC',
 
