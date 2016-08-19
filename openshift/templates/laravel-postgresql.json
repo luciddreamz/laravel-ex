@@ -78,7 +78,8 @@
             "kind": "ImageStreamTag",
             "namespace": "openshift",
             "name": "php:5.6"
-          }
+          },
+          "forcePull": true
         }
       },
       "output": {
