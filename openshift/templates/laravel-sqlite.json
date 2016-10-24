@@ -4,11 +4,13 @@
   "metadata": {
     "name": "laravel-sqlite-example",
     "annotations": {
-      "description": "An example Laravel application with a MySQL database",
-      "tags": "quickstart,php,laravel,sqlite",
+      "openshift.io/display-name": "Laravel",
+      "description": "An example Laravel application with a SQLite database. For more information about using this template, including OpenShift considerations, see https://github.com/luciddreamz/laravel-ex/blob/master/readme.md.\n\nWARNING: Any data stored will be lost upon pod destruction. Only use this template for testing.",
+      "tags": "quickstart,php,laravel",
       "iconClass": "icon-laravel"
     }
   },
+  "message": "The following service(s) have been created in your project: laravel-sqlite-example.\n\nFor more information about using this template, including OpenShift considerations, see https://github.com/luciddreamz/laravel-ex/blob/master/readme.md.",
   "labels": {
     "template": "laravel-sqlite-example"
   },

@@ -4,11 +4,13 @@
   "metadata": {
     "name": "laravel-pgsql-example",
     "annotations": {
-      "description": "An example Laravel application with a PostgreSQL database",
-      "tags": "quickstart,php,laravel,postgresql",
+      "openshift.io/display-name": "Laravel + PostgreSQL (Persistent)",
+      "description": "An example Laravel application with a PostgreSQL database. For more information about using this template, including OpenShift considerations, see https://github.com/luciddreamz/laravel-ex/blob/master/readme.md.",
+      "tags": "quickstart,php,laravel",
       "iconClass": "icon-laravel"
     }
   },
+  "message": "The following service(s) have been created in your project: laravel-pgsql-example, ${DATABASE_SERVICE_NAME}.\n\nFor more information about using this template, including OpenShift considerations, see https://github.com/luciddreamz/laravel-ex/blob/master/readme.md.",
   "labels": {
     "template": "laravel-pgsql-example"
   },
@@ -18,7 +20,8 @@
     "metadata": {
       "name": "laravel-pgsql-example",
       "annotations": {
-        "description": "Exposes and load balances the application pods"
+        "description": "Exposes and load balances the application pods",
+        "service.alpha.openshift.io/dependencies": "[{\"name\": \"${DATABASE_SERVICE_NAME}\", \"kind\": \"Service\"}]"
       }
     },
     "spec": {
