@@ -10,7 +10,7 @@
       "iconClass": "icon-laravel"
     }
   },
-  "message": "The following service(s) have been created in your project: laravel-sqlite-example.\n\nFor more information about using this template, including OpenShift considerations, see https://github.com/luciddreamz/laravel-ex/blob/master/readme.md.",
+  "message": "The following service(s) have been created in your project: ${NAME}.\n\nFor more information about using this template, including OpenShift considerations, see https://github.com/luciddreamz/laravel-ex/blob/master/readme.md.",
   "labels": {
     "template": "laravel-sqlite-example"
   },
@@ -18,7 +18,7 @@
     "kind": "Service",
     "apiVersion": "v1",
     "metadata": {
-      "name": "laravel-sqlite-example",
+      "name": "${NAME}",
       "annotations": {
         "description": "Exposes and load balances the application pods"
       }
@@ -30,27 +30,27 @@
         "targetPort": 8080
       }],
       "selector": {
-        "name": "laravel-sqlite-example"
+        "name": "${NAME}"
       }
     }
   }, {
     "kind": "Route",
     "apiVersion": "v1",
     "metadata": {
-      "name": "laravel-sqlite-example"
+      "name": "${NAME}"
     },
     "spec": {
       "host": "${APPLICATION_DOMAIN}",
       "to": {
         "kind": "Service",
-        "name": "laravel-sqlite-example"
+        "name": "${NAME}"
       }
     }
   }, {
     "kind": "ImageStream",
     "apiVersion": "v1",
     "metadata": {
-      "name": "laravel-sqlite-example",
+      "name": "${NAME}",
       "annotations": {
         "description": "Keeps track of changes in the application image"
       }
@@ -59,7 +59,7 @@
     "kind": "BuildConfig",
     "apiVersion": "v1",
     "metadata": {
-      "name": "laravel-sqlite-example",
+      "name": "${NAME}",
       "annotations": {
         "description": "Defines how to build the application"
       }
@@ -79,7 +79,7 @@
           "from": {
             "kind": "ImageStreamTag",
             "namespace": "openshift",
-            "name": "php:5.6"
+            "name": "php:7.0"
           },
           "forcePull": true
         }
@@ -87,7 +87,7 @@
       "output": {
         "to": {
           "kind": "ImageStreamTag",
-          "name": "laravel-sqlite-example:latest"
+          "name": "${NAME}:latest"
         }
       },
       "triggers": [{
@@ -105,7 +105,7 @@
     "kind": "DeploymentConfig",
     "apiVersion": "v1",
     "metadata": {
-      "name": "laravel-sqlite-example",
+      "name": "${NAME}",
       "annotations": {
         "description": "Defines how to deploy the application server"
       }
@@ -134,7 +134,7 @@
           ],
           "from": {
             "kind": "ImageStreamTag",
-            "name": "laravel-sqlite-example:latest"
+            "name": "${NAME}:latest"
           }
         }
       }, {
@@ -142,19 +142,19 @@
       }],
       "replicas": 1,
       "selector": {
-        "name": "laravel-sqlite-example"
+        "name": "${NAME}"
       },
       "template": {
         "metadata": {
-          "name": "laravel-sqlite-example",
+          "name": "${NAME}",
           "labels": {
-            "name": "laravel-sqlite-example"
+            "name": "${NAME}"
           }
         },
         "spec": {
           "containers": [{
             "name": "laravel-sqlite-example",
-            "image": "laravel-sqlite-example",
+            "image": "${NAME}",
             "ports": [{
               "containerPort": 8080
             }],
@@ -207,6 +207,12 @@
     }
   }],
   "parameters": [{
+      "name": "NAME",
+      "displayName": "Name",
+      "description": "The name assigned to all of the frontend objects defined in this template.",
+      "required": true,
+      "value": "laravel-sqlite-example"
+    }, {
     "name": "SOURCE_REPOSITORY_URL",
     "displayName": "Git Repository URL",
     "description": "The URL of the repository with your application source code.",
@@ -233,6 +239,11 @@
     "displayName": "OPcache Revalidation Frequency",
     "description": "How often to check script timestamps for updates, in seconds. 0 will result in OPcache checking for updates on every request.",
     "value": "0"
+  }, {
+    "name": "COMPOSER_MIRROR",
+    "displayName": "Custom Composer Mirror URL",
+    "description": "The custom Composer mirror URL",
+    "value": ""
   }, {
     "displayName": "Cluster Name",
     "name": "CLUSTER_NAME",
