@@ -89,10 +89,13 @@
         "sourceStrategy": {
           "from": {
             "kind": "ImageStreamTag",
-            "namespace": "openshift",
+            "namespace": "${NAMESPACE}",
             "name": "php:7.0"
           },
-          "forcePull": true
+          "env": [{
+            "name": "COMPOSER_MIRROR",
+            "value": "${COMPOSER_MIRROR}"
+          }]
         }
       },
       "output": {
@@ -285,7 +288,7 @@
           ],
           "from": {
             "kind": "ImageStreamTag",
-            "namespace": "openshift",
+            "namespace": "${NAMESPACE}",
             "name": "postgresql:9.5"
           }
         }
@@ -360,12 +363,18 @@
     }
   }],
   "parameters": [{
-      "name": "NAME",
-      "displayName": "Name",
-      "description": "The name assigned to all of the frontend objects defined in this template.",
-      "required": true,
-      "value": "laravel-pgsql-example"
-    }, {
+    "name": "NAME",
+    "displayName": "Name",
+    "description": "The name assigned to all of the frontend objects defined in this template.",
+    "required": true,
+    "value": "laravel-pgsql-example"
+  }, {
+    "name": "NAMESPACE",
+    "displayName": "Namespace",
+    "description": "The OpenShift Namespace where the ImageStream resides.",
+    "required": true,
+    "value": "openshift"
+  }, {
     "name": "SOURCE_REPOSITORY_URL",
     "displayName": "Git Repository URL",
     "description": "The URL of the repository with your application source code.",
