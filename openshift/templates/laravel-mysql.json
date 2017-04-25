@@ -142,7 +142,7 @@
     },
     "spec": {
       "strategy": {
-        "type": "Rolling",
+        "type": "Recreate",
         "recreateParams": {
           "pre": {
             "failurePolicy": "Retry",
