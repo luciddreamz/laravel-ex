@@ -2,7 +2,7 @@
   "kind": "Template",
   "apiVersion": "v1",
   "metadata": {
-    "name": "laravel-sqlite-example",
+    "name": "laravel-sqlite",
     "annotations": {
       "openshift.io/display-name": "Laravel",
       "description": "An example Laravel application with a SQLite database. For more information about using this template, including OpenShift considerations, see https://github.com/luciddreamz/laravel-ex/blob/master/readme.md.\n\nWARNING: Any data stored will be lost upon pod destruction. Only use this template for testing.",
@@ -12,7 +12,7 @@
   },
   "message": "The following service(s) have been created in your project: ${NAME}.\n\nFor more information about using this template, including OpenShift considerations, see https://github.com/luciddreamz/laravel-ex/blob/master/readme.md.",
   "labels": {
-    "template": "laravel-sqlite-example"
+    "template": "laravel-sqlite"
   },
   "objects": [{
     "kind": "Service",
@@ -123,7 +123,7 @@
               "command": [
                 "./migrate-database.sh"
               ],
-              "containerName": "laravel-sqlite-example"
+              "containerName": "laravel-sqlite"
             }
           }
         }
@@ -133,7 +133,7 @@
         "imageChangeParams": {
           "automatic": true,
           "containerNames": [
-            "laravel-sqlite-example"
+            "laravel-sqlite"
           ],
           "from": {
             "kind": "ImageStreamTag",
@@ -156,7 +156,7 @@
         },
         "spec": {
           "containers": [{
-            "name": "laravel-sqlite-example",
+            "name": "laravel-sqlite",
             "image": "${NAME}",
             "ports": [{
               "containerPort": 8080
@@ -214,7 +214,7 @@
     "displayName": "Name",
     "description": "The name assigned to all of the frontend objects defined in this template.",
     "required": true,
-    "value": "laravel-sqlite-example"
+    "value": "laravel-sqlite"
   }, {
     "name": "NAMESPACE",
     "displayName": "Namespace",
