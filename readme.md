@@ -1,8 +1,9 @@
-Laravel 5.2 Quickstart on OpenShift
+Laravel 5.3 Quickstart on OpenShift
 ===================================
+
 [Laravel](http://laravel.com/) is a free, open source PHP web application framework, designed for the development of model–view–controller (MVC) web applications.
 
-This quickstart was created to make it easy to get started with Laravel 5.2 on OpenShift v3.
+This quickstart was created to make it easy to get started with Laravel 5.3 on OpenShift v3.
 
 The simplest way to install this application is to use the OpenShift quickstart template. To install the quickstart, follow [these directions](#installation).
 
