@@ -38,7 +38,7 @@
     <body>
         <div class="container">
             <div class="content">
-                <div class="title">Laravel 888.5</div>
+                <div class="title">Laravel 88800.5</div>
             </div>
         </div>
     </body>
